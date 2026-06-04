@@ -1,6 +1,6 @@
 # Systematic Macro Project: Plan, Setup and Overview
 
- this is the full plan for what we're building and how. Read it end to end. The short version: we're building a systematic macro trading system, learning each other's discipline as we go, with the explicit end goal of running it live on real capital after it has earned the right.
+ This is the full plan for what we're building and how. Read it end to end. The short version: we're building a systematic macro trading system, learning each other's discipline as we go, with the explicit end goal of running it live on real capital after it has earned the right.
 
 ## What we are building, and why
 
