@@ -1,0 +1,26 @@
+# requirements.txt — Systematic Macro Project
+#
+# Install with:  pip install -r requirements.txt
+# Rule (from the spec): add packages only when the phase needs them.
+# Uncomment later-phase lines as you reach those phases.
+ 
+# ---- Phase 1: core research rig (install now) ----
+pandas          # time-indexed price/return series, daily->monthly resampling, rolling windows
+numpy           # numerical layer: sign function, EWMA maths, array ops
+matplotlib      # plotting: equity curves, t-stat-by-lag, drawdowns
+jupyter         # notebooks for exploration before code moves into /src
+ipykernel       # lets VS Code run the notebook kernel
+ 
+# ---- Phase 1: data sourcing (uncomment when you reach it) ----
+# yfinance              # free daily data from Yahoo
+# pandas-datareader     # alternative free source (e.g. Stooq)
+ 
+# ---- Phase 2: evaluation / factor regressions (uncomment later) ----
+# statsmodels   # regressions with t-stats and R^2 (the MKT/SMB/HML/UMD factor regression)
+# scipy         # broader stats utilities
+ 
+# ---- Live trading (uncomment only when paper trading begins, much later) ----
+# ib_insync     # Interactive Brokers API wrapper
+ 
+# ---- Dev tooling (optional, keeps code style consistent) ----
+# ruff          # linter / formatter
