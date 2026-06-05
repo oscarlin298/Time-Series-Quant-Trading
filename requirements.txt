@@ -12,7 +12,7 @@ jupyter         # notebooks for exploration before code moves into /src
 ipykernel       # lets VS Code run the notebook kernel
  
 # ---- Phase 1: data sourcing (uncomment when you reach it) ----
-# yfinance              # free daily data from Yahoo
+yfinance              # free daily data from Yahoo
 # pandas-datareader     # alternative free source (e.g. Stooq)
  
 # ---- Phase 2: evaluation / factor regressions (uncomment later) ----
