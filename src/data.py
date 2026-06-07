@@ -91,7 +91,9 @@ def remove_roll_jumps(daily, futures=FUTURES, n_sigma=5, window=60):
     """
     cleaned = daily.copy()
     cols = [c for c in futures if c in cleaned.columns]
-    rolling_std = cleaned[cols].rolling(window).std()
+    rolling_std = cleaned[cols].rolling(window, min_periods=20).std()
+    print("rolling_std non-NaN counts:\n", rolling_std.notna().sum())
+    print("daily non-NaN counts:\n", cleaned[cols].notna().sum())
     too_big = cleaned[cols].abs() > (n_sigma * rolling_std)
     cleaned[cols] = cleaned[cols].mask(too_big)
     # Report how many days were flagged per instrument (sanity check on n_sigma:
@@ -115,7 +117,7 @@ if __name__ == "__main__":
 
     prices = load_prices()
     daily = daily_returns(prices)
-    daily = remove_roll_jumps(daily)      # clean roll gaps before compounding
+    daily = remove_roll_jumps(daily_returns(prices)) # clean roll gaps before compounding
     monthly = monthly_returns(daily)
 
     print("\nPrice table:", prices.shape, "(rows x instruments)")
