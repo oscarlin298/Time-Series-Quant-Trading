@@ -47,7 +47,6 @@ def run_backtest(monthly_rets, signal, vol, target_vol=TARGET_VOL):
     # backtest silently uses the future to predict the future. Most important
     # line in the file.
     position = position.shift(1)
-    print("\nPosition tail:\n", position.tail().round(2))
 
     # --- Step 4: gross return per instrument -------------------------------
     # Lagged position times the month's actual return.
@@ -69,7 +68,67 @@ def run_backtest(monthly_rets, signal, vol, target_vol=TARGET_VOL):
     net = scale_to_target_vol(net)
 
     return pd.DataFrame({"gross": gross, "net": net}).dropna()
-    return pd.DataFrame({"gross": gross, "net": net}).dropna()
+
+def run_combined(monthly_rets, trend_signal, carry_sig, vol,
+                 fx_instruments, trend_weight=0.5):
+    """Combine trend and carry as separate sleeves, then weighted-average.
+
+    Each sleeve runs through the same run_backtest engine.
+    Trend uses the full universe.
+    Carry uses FX instruments only.
+
+    trend_weight controls the blend:
+      0.5 = 50% trend, 50% carry
+      0.7 = 70% trend, 30% carry
+    """
+    trend_results = run_backtest(monthly_rets, trend_signal, vol)
+
+    fx = [c for c in fx_instruments if c in monthly_rets.columns]
+
+    carry_results = run_backtest(
+        monthly_rets[fx],
+        carry_sig[fx],
+        vol[fx],
+    )
+
+    combined = pd.DataFrame({
+        "trend": trend_results["net"],
+        "carry": carry_results["net"],
+    })
+
+    combined["combined"] = (
+        trend_weight * combined["trend"]
+        + (1 - trend_weight) * combined["carry"]
+    )
+
+    return combined.dropna(subset=["combined"])
+
+def run_carry_combination(monthly_rets, signal, vol, trend_weight=0.5):
+    """Build the FX carry signal and combine it with the trend sleeve."""
+    from signals import carry_signal
+    from rates import load_rates
+
+    fx_instruments = ASSET_CLASSES["FX"]
+
+    rates = load_rates()
+    carry_sig = carry_signal(rates, fx_instruments)
+    carry_sig = carry_sig.reindex_like(monthly_rets[fx_instruments])
+
+    return run_combined(
+        monthly_rets,
+        signal,
+        carry_sig,
+        vol,
+        fx_instruments,
+        trend_weight=trend_weight,
+    )
+
+def print_combined_summary(combined):
+    """Print Sharpe ratios for trend, carry, and combined sleeves."""
+    print("\nCombined sleeves — net Sharpe:")
+    print(f"  trend     {sharpe(combined['trend']):5.2f}")
+    print(f"  carry     {sharpe(combined['carry']):5.2f}")
+    print(f"  combined  {sharpe(combined['combined']):5.2f}")
 
 
 # ---------------------------------------------------------------------------
@@ -143,3 +202,12 @@ if __name__ == "__main__":
     summarise(results)
     print(f"\nReturn stream: {len(results)} months, "
           f"{results.index.min().date()} -> {results.index.max().date()}")
+    
+    combined = run_carry_combination(
+        monthly_rets,
+        signal,
+        vol,
+        trend_weight=0.5,
+    )
+
+    print_combined_summary(combined)
