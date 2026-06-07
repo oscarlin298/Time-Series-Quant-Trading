@@ -69,7 +69,7 @@ def load_prices():
 
 def daily_returns(prices):
     """Simple daily returns. NaNs are kept, not filled (no fake flat days)."""
-    return prices.pct_change()
+    return prices.pct_change(fill_method=None)
 
 
 def remove_roll_jumps(daily, futures=FUTURES, n_sigma=5, window=60):

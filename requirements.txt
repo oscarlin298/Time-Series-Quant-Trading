@@ -13,7 +13,7 @@ ipykernel       # lets VS Code run the notebook kernel
  
 # ---- Phase 1: data sourcing (uncomment when you reach it) ----
 yfinance              # free daily data from Yahoo
-# pandas-datareader     # alternative free source (e.g. Stooq)
+pandas-datareader     # alternative free source (e.g. Stooq)
  
 # ---- Phase 2: evaluation / factor regressions (uncomment later) ----
 # statsmodels   # regressions with t-stats and R^2 (the MKT/SMB/HML/UMD factor regression)
