@@ -25,6 +25,11 @@ UNIVERSE = {
 # Instruments whose price needs inverting to match the spec's quote convention.
 INVERT = {"USDJPY": "JPYUSD"}  # Yahoo gives USD/JPY; spec wants JPY/USD
 
+# Futures columns only — these are the ones with roll gaps to clean.
+# (FX and equity indices are spot/index series with no roll.)
+# Names here are post-INVERT, i.e. as they appear in the price table.
+FUTURES = ["UST10Y", "CRUDE", "GOLD", "COPPER"]
+
 OUT = Path(__file__).resolve().parent.parent / "data" / "raw"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -67,6 +72,36 @@ def daily_returns(prices):
     return prices.pct_change()
 
 
+def remove_roll_jumps(daily, futures=FUTURES, n_sigma=5, window=60):
+    """Blank out suspected futures roll gaps.
+
+    A roll gap shows up as a one-day return far larger than the instrument's
+    normal daily move. We flag any daily return more than n_sigma rolling
+    standard deviations from zero and treat it as missing (NaN) rather than a
+    real return. Auto-scales per instrument via each one's own volatility.
+
+    APPROXIMATION (documented deviation from spec): the spec wants returns
+    chained within individual contracts. Yahoo only gives a pre-stitched
+    continuous series, so we cannot do that here. This jump-removal is a
+    cheap first-pass substitute. Proper fix = individual-contract data via a
+    real vendor / IBKR feed in phase two.
+
+    Only applied to the FUTURES columns — FX and equities have no roll, and
+    cleaning them would risk deleting genuine large market moves.
+    """
+    cleaned = daily.copy()
+    cols = [c for c in futures if c in cleaned.columns]
+    rolling_std = cleaned[cols].rolling(window).std()
+    too_big = cleaned[cols].abs() > (n_sigma * rolling_std)
+    cleaned[cols] = cleaned[cols].mask(too_big)
+    # Report how many days were flagged per instrument (sanity check on n_sigma:
+    # a few per decade = good; dozens = threshold too low, eating real moves).
+    flagged = too_big.sum()
+    print("\nRoll-jump days flagged (futures only):")
+    print(flagged.to_string())
+    return cleaned
+
+
 def monthly_returns(daily):
     """Compound daily returns up to month-end. TODO: make excess of risk-free rate."""
     return (1 + daily).resample("ME").prod() - 1
@@ -80,6 +115,7 @@ if __name__ == "__main__":
 
     prices = load_prices()
     daily = daily_returns(prices)
+    daily = remove_roll_jumps(daily)      # clean roll gaps before compounding
     monthly = monthly_returns(daily)
 
     print("\nPrice table:", prices.shape, "(rows x instruments)")
