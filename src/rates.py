@@ -38,7 +38,7 @@ def fetch_fred_rates(start="1994-01-01"):
     return rates
 
 
-def save_rates(path="data/raw/fred_rates.csv"):
+def save_rates(path="data/rates/fred_rates.csv"):
     """Fetch FRED rates and save them locally."""
     rates = fetch_fred_rates()
     rates.to_csv(path)
@@ -47,7 +47,7 @@ def save_rates(path="data/raw/fred_rates.csv"):
     return rates
 
 
-def load_rates(path="data/raw/fred_rates.csv"):
+def load_rates(path="data/rates/fred_rates.csv"):
     """Load saved FRED rates from CSV."""
     return pd.read_csv(path, index_col=0, parse_dates=True)
 
