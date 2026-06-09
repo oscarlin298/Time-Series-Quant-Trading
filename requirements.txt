@@ -20,7 +20,7 @@ pandas-datareader     # alternative free source (e.g. Stooq)
 # scipy         # broader stats utilities
  
 # ---- Live trading (uncomment only when paper trading begins, much later) ----
-# ib_insync     # Interactive Brokers API wrapper
+ib_insync     # Interactive Brokers API wrapper
  
 # ---- Dev tooling (optional, keeps code style consistent) ----
 # ruff          # linter / formatter
